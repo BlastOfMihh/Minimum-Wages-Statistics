@@ -134,7 +134,7 @@ disp(mdl)
 
 % Plot
 figure;
-plot(EU_mean_vals, US_vals_matched, 'o')
+plot(EU_mean_vals, US_vals_matched, '-g')
 hold on
 plot(EU_mean_vals, mdl.Fitted, '-r')
 xlabel('EU Mean Minimum Wage')
@@ -151,6 +151,10 @@ allYears = sort(allYears);           % chronological order
 romania_vals = [];
 moldova_vals = [];
 ukraine_vals = [];
+% montenegro_vals = [];
+% albania_vals = [];
+% turkey_vals = [];
+
 years_to_plot = {};  % keep as cell array
 
 for i = 1:length(allYears)
@@ -158,18 +162,29 @@ for i = 1:length(allYears)
     idxR = data.Country=='Romania' & ismember(data.TimePeriod, allYears(i));
     idxM = data.Country=='Moldova' & ismember(data.TimePeriod, allYears(i));
     idxU = data.Country=='Ukraine' & ismember(data.TimePeriod, allYears(i));
-    
+    % idxN = data.Country=='Montenegro' & ismember(data.TimePeriod, allYears(i));
+    % idxA = data.Country=='Albania' & ismember(data.TimePeriod, allYears(i));
+    % idxT = data.Country=='Turkey' & ismember(data.TimePeriod, allYears(i));
+
     valR = data.Value(idxR);
     valM = data.Value(idxM);
     valU = data.Value(idxU);
+    % valN = data.Value(idxN);
+    % valA = data.Value(idxA);
+    % valT = data.Value(idxT);
     
     % Only include if all three countries have valid numeric values
     if ~isempty(valR) && ~isempty(valM) && ~isempty(valU) && ...
-       ~isnan(valR) && ~isnan(valM) && ~isnan(valU)
+       ~isnan(valR) && ~isnan(valM) && ~isnan(valU) % && ...
+    %    ~isempty(valN) && ~isempty(valA) && ~isempty(valT) && ...
+    %    ~isnan(valN) && ~isnan(valA) && ~isnan(valT)
        
         romania_vals(end+1,1) = valR;
         moldova_vals(end+1,1) = valM;
         ukraine_vals(end+1,1) = valU;
+        % montenegro_vals(end+1,1) = valN;
+        % albania_vals(end+1,1) = valA;
+        % turkey_vals(end+1,1) = valT;
         
         % Convert categorical to string for storing in cell
         years_to_plot{end+1,1} = string(allYears(i));
@@ -188,6 +203,10 @@ years_to_plot_cat = years_to_plot_cat(sortIdx);
 romania_vals = romania_vals(sortIdx);
 moldova_vals = moldova_vals(sortIdx);
 ukraine_vals = ukraine_vals(sortIdx);
+% montenegro_vals = montenegro_vals(sortIdx);
+% albania_vals = albania_vals(sortIdx);
+% turkey_vals = turkey_vals(sortIdx);
+
 
 % Plot
 figure;
@@ -195,6 +214,9 @@ plot(years_to_plot_cat, romania_vals, '-o', 'DisplayName','Romania')
 hold on
 plot(years_to_plot_cat, moldova_vals, '-s', 'DisplayName','Moldova')
 plot(years_to_plot_cat, ukraine_vals, '-^', 'DisplayName','Ukraine')
+% plot(years_to_plot_cat, montenegro_vals, '-b', 'DisplayName','Montenegro')
+% plot(years_to_plot_cat, albania_vals, '-r', 'DisplayName','A')
+% plot(years_to_plot_cat, turkey_vals, '-y', 'DisplayName','T')
 xtickangle(45)
 xlabel('Time Period')
 ylabel('Minimum Wage Value')
@@ -202,3 +224,83 @@ title('Romania vs Moldova vs Ukraine (All Years)')
 legend('Location','best')
 grid on
 hold off
+
+% Reason behind Moldova's minimum wage significant jump in 2022
+% Extract Moldova values
+idxM = data.Country=='Moldova';
+modova_vals = data.Value(idxM);
+modova_periods = data.TimePeriod(idxM);
+
+% Plot Moldova minimum wage over time
+figure;
+stem(modova_periods, modova_vals, 'filled')
+xtickangle(45)
+xlabel('Time Period')
+ylabel('Minimum Wage')
+title('Moldova Minimum Wage 1999-2025')
+grid on
+
+%% Serbia and Slovenia – Simple Extract & Plot
+countries = {'Serbia','Slovenia'};
+
+figure;
+hold on;
+
+for i = 1:length(countries)
+    c = countries{i};
+
+    % Select rows
+    idx = data.Country == c;
+
+    years = data.TimePeriod(idx);
+    vals  = data.Value(idx);
+
+    % Remove missing
+    valid = ~isnan(vals);
+    years = years(valid);
+    vals  = vals(valid);
+
+    % Plot
+    plot(years, vals, '-o', 'LineWidth', 1.4, 'DisplayName', c);
+end
+
+hold off;
+grid on;
+xlabel('Semester');
+ylabel('Minimum Wage');
+title('Minimum Wage: Serbia vs Slovenia');
+legend('Location','best');
+xtickangle(45);
+
+%% Growth Rate Comparison
+figure;
+hold on;
+
+for i = 1:length(countries)
+    c = countries{i};
+
+    % Select rows
+    idx = data.Country == c;
+
+    years = data.TimePeriod(idx);
+    vals  = data.Value(idx);
+
+    % Remove missing
+    valid = ~isnan(vals);
+    years = years(valid);
+    vals  = vals(valid);
+
+    % Compute growth rate (%)
+    growth = [NaN; diff(vals) ./ vals(1:end-1) * 100];
+
+    % Plot growth rate
+    plot(years, growth, '-o', 'LineWidth', 1.4, 'DisplayName', [c ' Growth']);
+end
+
+hold off;
+grid on;
+xlabel('Semester');
+ylabel('Growth Rate (%)');
+title('Minimum Wage Growth Rate: Serbia vs Slovenia');
+legend('Location','best');
+xtickangle(45);
